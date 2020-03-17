@@ -164,11 +164,11 @@ def add_ride():
             source = request.get_json().get("source")
             destination = request.get_json().get("destination")
             try:
-                    source = str(int(source))
-                    destination = str(int(destination))
+                source = str(int(source))
+                destination = str(int(destination))
             except:
-                    d = dict()
-                    abort(400)
+                d = dict()
+                abort(400)
             if(created_by and timestamp and source and destination):
                 
                 origin = {"Origin": "18.209.136.80"}
@@ -178,9 +178,6 @@ def add_ride():
                 #if username doesn't exist return 400
                 if created_by not in r.json():
                     abort(400)
-                
-                
-                # if the source or destination is not present in places, bad request
                 elif(not (int(source) in places and int(destination) in places)):
                     abort(400)
                 else:
@@ -203,7 +200,6 @@ def add_ride():
             abort(400)
     elif request.method == "GET":
         try:
-
             datestr = get_curr_time()
             teststr = 5
             source = request.args.get('source')
@@ -236,16 +232,15 @@ def add_ride():
                             temp = dict()
                             temp["rideId"] = lst[x][0]
                             #temp["username"] = "{" + lst[x][1] + "}"
-                            temp["username"] = lst[x][1]                            
+                            temp["username"] = lst[x][1]
                             temp["timestamp"] = lst[x][2]
                             
-                            if(flag and compare_dates(datestr, str(lst[x][2]))):
+                            if(compare_dates(datestr, str(lst[x][2]))):
                                 final_lst.append(temp)
                     return json.dumps(final_lst)
+            else:
+                abort(400)
         except:
-            abort(400)
-        else:
-            d = dict()
             abort(400)
     else:
         d = dict()
