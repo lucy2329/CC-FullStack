@@ -232,16 +232,11 @@ def add_ride():
                         print(lst)
                         print("here: ", lst[0][2], datestr)
                         for x in range(len(lst)):
-                            flag = 1 #to check if user corresponding to the ride even exists
+                            
                             temp = dict()
                             temp["rideId"] = lst[x][0]
                             #temp["username"] = "{" + lst[x][1] + "}"
-                            temp["username"] = lst[x][1]
-                            
-                            origin = {"Origin": "18.209.136.80"}
-                            r = requests.get("http://U-R-1151372789.us-east-1.elb.amazonaws.com/api/v1/users", headers = origin)
-                            if temp["username"] not in r.json():
-                                flag=0
+                            temp["username"] = lst[x][1]                            
                             temp["timestamp"] = lst[x][2]
                             
                             if(flag and compare_dates(datestr, str(lst[x][2]))):
