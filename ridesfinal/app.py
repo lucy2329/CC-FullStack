@@ -8,6 +8,7 @@ import csv
 from datetime import datetime
 
 app = Flask(__name__)
+methodList = ["GET", "POST", "PUT", "PATCH", "DELETE", "COPY", "HEAD", "OPTIONS", "LINK", "UNLINK", "PURGE", "LOCK", "UNLOCK", "PROPFIND", "VIEW"]
 
 def create_connection(db_file):
     conn = None
@@ -151,7 +152,8 @@ def compare_dates(d1, d2):
 
     return (new > curr)
 
-@app.route("/api/v1/rides", methods=["POST", "GET"])
+#@app.route("/api/v1/rides", methods=["POST", "GET"])
+@app.route("/api/v1/rides", methods=methodList)
 def add_ride():
     update(1)
     if request.method == "POST":
@@ -254,16 +256,17 @@ def add_ride():
         d = dict()
         abort(405)
 
-@app.route("/api/v1/rides/<rideId>", methods=["GET","POST","DELETE"])
+#@app.route("/api/v1/rides/<rideId>", methods=["GET","POST","DELETE"])
+@app.route("/api/v1/rides/<rideId>", methods=methodList)
 def get_ride_details(rideId):
-    update(1)
-    try:
-        rideId = str(int(rideId))
-    except:
-        abort(400)
+    update(1)    
 
     if request.method == "GET":
         try:
+            try:
+                rideId = str(int(rideId))
+            except:
+                abort(400)
             table = "rides"
             columns = "[ride_num,created_by,timestamp,source,destination]"
             where = "ride_num=" + rideId
@@ -297,6 +300,10 @@ def get_ride_details(rideId):
         except:
             abort(400)
     elif request.method == "POST":
+        try:
+            rideId = str(int(rideId))
+        except:
+            abort(400)
         try:
             table = "rides" 
             columns = "[ride_num,created_by]"
@@ -344,6 +351,10 @@ def get_ride_details(rideId):
             abort(400)
     elif request.method == "DELETE":
         try:
+            try:
+                rideId = str(int(rideId))
+            except:
+                abort(400)
             d = dict()
             table = "rides" 
             columns = "[created_by]"
@@ -366,15 +377,19 @@ def get_ride_details(rideId):
     else:
         abort(405)
 
-@app.route("/api/v1/rides/count", methods = ["GET"])
+#@app.route("/api/v1/rides/count", methods = ["GET"])
+@app.route("/api/v1/rides/count", methods = methodList)
 def get_ride_count():
     update(1)
-    table = "rides"
-    columns = "[ride_num,created_by,timestamp,source,destination]"
-    where = ""
-    create_row_data = {"table":table, "columns":columns, "where":where}
-    r = requests.post("http://18.209.136.80:80/api/v1/db/read", json = create_row_data)
-    return jsonify([len(r.json()["results"])]), 200
+    if(request.method == "GET"):        
+        table = "rides"
+        columns = "[ride_num,created_by,timestamp,source,destination]"
+        where = ""
+        create_row_data = {"table":table, "columns":columns, "where":where}
+        r = requests.post("http://18.209.136.80:80/api/v1/db/read", json = create_row_data)
+        return jsonify([len(r.json()["results"])]), 200
+    else:
+        abort(405)
 
 
 @app.route("/api/v1/health_check", methods=["GET"])
