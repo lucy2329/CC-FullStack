@@ -117,16 +117,12 @@ def get_requests():
         create_row_data = {"table":table, "columns":columns, "where":where}
         r = requests.post("http://35.171.64.212:80/api/v1/db/read", json = create_row_data)
         lst = r.json()["results"] #[13]
-        return lst, 200
+        return jsonify(lst), 200
     
     if request.method == "DELETE":
         update(0)
-        lst = [0]
         d = {}
         return jsonify(d), 200
-
-
-
 
 @app.route("/api/v1/db/clear", methods=["POST"])
 def clear_db():
@@ -140,6 +136,7 @@ def clear_db():
 
 @app.route("/api/v1/users", methods=["GET"])
 def list_users():
+    update(1)
     table = "users"
     columns = "[username]"
     where = ""
@@ -158,6 +155,7 @@ def list_users():
 
 @app.route("/api/v1/users", methods=["PUT"])
 def add_user():
+    update(1)
     username = request.get_json().get("username")
     password = request.get_json().get("password")
     # if both the fields have values 
@@ -197,6 +195,7 @@ def add_user():
 
 @app.route("/api/v1/users/<username>", methods=["DELETE"])
 def delete_user(username):
+    update(1)
     username = str(username)
     table = "users"
     columns = "[username,password]"

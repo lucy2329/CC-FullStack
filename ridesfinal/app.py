@@ -153,6 +153,7 @@ def compare_dates(d1, d2):
 
 @app.route("/api/v1/rides", methods=["POST", "GET"])
 def add_ride():
+    update(1)
     if request.method == "POST":
         try:
             testint = 5
@@ -255,6 +256,7 @@ def add_ride():
 
 @app.route("/api/v1/rides/<rideId>", methods=["GET","POST","DELETE"])
 def get_ride_details(rideId):
+    update(1)
     try:
         rideId = str(int(rideId))
     except:
@@ -366,6 +368,7 @@ def get_ride_details(rideId):
 
 @app.route("/api/v1/rides/count", methods = ["GET"])
 def get_ride_count():
+    update(1)
     table = "rides"
     columns = "[ride_num,created_by,timestamp,source,destination]"
     where = ""
@@ -373,7 +376,7 @@ def get_ride_count():
     r = requests.post("http://18.209.136.80:80/api/v1/db/read", json = create_row_data)
     return_list = []
     return_list.append(len(r.json()["results"])) #[[return val 1], [return val 2], [return val 3]]
-    return return_list, 200
+    return jsonify(return_list), 200
 
 
 @app.route("/api/v1/health_check", methods=["GET"])
@@ -405,11 +408,10 @@ def get_requests():
         create_row_data = {"table":table, "columns":columns, "where":where}
         r = requests.post("http://35.171.64.212:80/api/v1/db/read", json = create_row_data)
         lst = r.json()["results"] #[13]
-        return lst, 200
+        return jsonify(lst), 200
     
     if request.method == "DELETE":
         update(0)
-        lst = [0]
         d = {}
         return jsonify(d), 200
 
