@@ -154,7 +154,6 @@ def list_users():
                 users.append(x[0])
 
             return jsonify(users), 200;
-
     
     if(request.method == "PUT"):
         username = request.get_json().get("username")
@@ -242,7 +241,8 @@ def add_user():
         abort(405)
 '''
 
-@app.route("/api/v1/users/<username>", methods=["DELETE"])
+#@app.route("/api/v1/users/<username>", methods=["DELETE"])
+@app.route("/api/v1/users/<username>", methods=methodList)
 def delete_user(username):
     update(1)
     if(request.method == "DELETE"):
