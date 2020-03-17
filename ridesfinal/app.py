@@ -374,7 +374,7 @@ def get_ride_count():
     where = ""
     create_row_data = {"table":table, "columns":columns, "where":where}
     r = requests.post("http://18.209.136.80:80/api/v1/db/read", json = create_row_data)
-    return jsonify(([len(r.json()["results"])])), 200
+    return jsonify([len(r.json()["results"])]), 200
 
 
 @app.route("/api/v1/health_check", methods=["GET"])
