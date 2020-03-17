@@ -261,7 +261,7 @@ def insert_dummy_value():
     database = r"pythonsqlite.db"
     conn = create_connection(database)
     c = conn.cursor()
-    query = "INSERT INTO count(requests) VALUES(0) WHERE NOT EXISTS (SELECT requsts FROM count where requests >= 0);"
+    query = "INSERT INTO COUNT(requests) SELECT 0 WHERE NOT EXISTS (SELECT requests FROM count);"
     c.execute(query)
     conn.commit()
 
