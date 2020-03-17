@@ -374,9 +374,7 @@ def get_ride_count():
     where = ""
     create_row_data = {"table":table, "columns":columns, "where":where}
     r = requests.post("http://18.209.136.80:80/api/v1/db/read", json = create_row_data)
-    return_list = []
-    return_list.append(len(r.json()["results"])) #[[return val 1], [return val 2], [return val 3]]
-    return jsonify(return_list), 200
+    return jsonify((len(r.json()["results"]))), 200
 
 
 @app.route("/api/v1/health_check", methods=["GET"])
@@ -408,7 +406,7 @@ def get_requests():
         create_row_data = {"table":table, "columns":columns, "where":where}
         r = requests.post("http://35.171.64.212:80/api/v1/db/read", json = create_row_data)
         lst = r.json()["results"] #[13]
-        return jsonify(lst), 200
+        return jsonify(lst[0]), 200
     
     if request.method == "DELETE":
         update(0)

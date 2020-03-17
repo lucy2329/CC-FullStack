@@ -117,7 +117,7 @@ def get_requests():
         create_row_data = {"table":table, "columns":columns, "where":where}
         r = requests.post("http://35.171.64.212:80/api/v1/db/read", json = create_row_data)
         lst = r.json()["results"] #[13]
-        return jsonify(lst), 200
+        return jsonify(lst[0]), 200
     
     if request.method == "DELETE":
         update(0)
