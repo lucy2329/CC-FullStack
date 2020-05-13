@@ -13,12 +13,22 @@ services:
         container_name: rabbitmq
         image: rabbitmq:latest
 
+    zookeeper:
+        <<: *default
+        container_name: zookeeper
+        environment:
+            - ZOO_MY_ID=1
+            - ZOO_SERVER=server.1=0.0.0.0:2888:3888;2181
+        image: zookeeper:latest
+        hostname: zookeeper
+
     orchestrator:
         <<: *default
         build: .
         container_name: orchestrator
         depends_on:
             - rabbitmq
+            - zookeeper
         image: orchestrator:latest
         ports:
             - "80:5000"
