@@ -8,6 +8,7 @@ import csv
 from datetime import datetime
 
 app = Flask(__name__)
+ip = "3.224.119.238"
 methodList = ["GET", "POST", "PUT", "PATCH", "DELETE", "COPY", "HEAD", "OPTIONS", "LINK", "UNLINK", "PURGE", "LOCK", "UNLOCK", "PROPFIND", "VIEW"]
 
 def create_connection(db_file):
@@ -116,7 +117,7 @@ def get_requests():
         columns = "[requests]"
         where = ""
         create_row_data = {"table":table, "columns":columns, "where":where}
-        r = requests.post("http://35.171.64.212:80/api/v1/db/read", json = create_row_data)
+        r = requests.post("http://35.171.64.212/api/v1/db/read", json = create_row_data)
         lst = r.json()["results"] #[13]
         return jsonify(lst[0]), 200
     
@@ -129,8 +130,8 @@ def get_requests():
 def clear_db():
     table = "users"
     where = ""
-    create_row_data = {"table":table, "where":where}
-    r = requests.delete("http://35.171.64.212:80/api/v1/db/delete", json = create_row_data)
+    create_row_data = {"table":table, "where":where, "del":1}
+    r = requests.delete("http://"+ip+"/api/v1/db/write", json = create_row_data)
     d = dict()
 
     return jsonify(d), 200
@@ -144,7 +145,7 @@ def list_users():
         columns = "[username]"
         where = ""
         create_row_data = {"table":table, "columns":columns, "where":where}
-        r = requests.post("http://35.171.64.212:80/api/v1/db/read", json = create_row_data)
+        r = requests.post("http://"+ip+"/api/v1/db/read", json = create_row_data)
         d = dict()
         if(len(r.json()["results"]) == 0):
             return jsonify(d),204
@@ -166,7 +167,7 @@ def list_users():
             columns = "[username,password]"
             where = "username='" + username + "'"
             create_row_data = {"table":table, "columns":columns, "where":where}
-            r = requests.post("http://35.171.64.212:80/api/v1/db/read", json = create_row_data)
+            r = requests.post("http://"+ip+"/api/v1/db/read", json = create_row_data)
             d = dict()
             # check if the password is SHA1 hash hex
             if(match):
@@ -177,7 +178,7 @@ def list_users():
                     types = "[string,string]"
                     table = "users"
                     create_row_data = {"insert":insert, "columns":columns, "table":table, "types":types}
-                    r = requests.post("http://35.171.64.212:80/api/v1/db/write", json = create_row_data)
+                    r = requests.post("http://"+ip+"/api/v1/db/write", json = create_row_data)
                     # inserted the username and password into the table 'users'
                     return jsonify(d), 201
                 else:
@@ -211,7 +212,7 @@ def add_user():
             columns = "[username,password]"
             where = "username='" + username + "'"
             create_row_data = {"table":table, "columns":columns, "where":where}
-            r = requests.post("http://35.171.64.212:80/api/v1/db/read", json = create_row_data)
+            r = requests.post("http://"+ip+"/api/v1/db/read", json = create_row_data)
             d = dict()
             # check if the password is SHA1 hash hex
             if(match):
@@ -222,7 +223,7 @@ def add_user():
                     types = "[string,string]"
                     table = "users"
                     create_row_data = {"insert":insert, "columns":columns, "table":table, "types":types}
-                    r = requests.post("http://35.171.64.212:80/api/v1/db/write", json = create_row_data)
+                    r = requests.post("http://"+ip+"/api/v1/db/write", json = create_row_data)
                     # inserted the username and password into the table 'users'
                     return jsonify(d), 201
                 else:
@@ -251,7 +252,7 @@ def delete_user(username):
         columns = "[username,password]"
         where = "username='" + username + "'"
         create_row_data = {"table":table, "columns":columns, "where":where}
-        r = requests.post("http://35.171.64.212:80/api/v1/db/read", json = create_row_data)
+        r = requests.post("http://"+ip+"/api/v1/db/read", json = create_row_data)
         d = dict()
         # no user with the username specified
         if(len(r.json()["results"]) == 0):
@@ -260,8 +261,8 @@ def delete_user(username):
             # remove the username with the username that has been specified
             table = "users"
             where = "username='" + username + "'"
-            create_row_data = {"table":table, "where":where}
-            r = requests.delete("http://35.171.64.212:80/api/v1/db/delete", json = create_row_data)
+            create_row_data = {"table":table, "where":where, "del":1}
+            r = requests.delete("http://"+ip+"/api/v1/db/write", json = create_row_data)
 
             #cascade delete 
             #to get all ride numbers associated w this guy in 2nd table
@@ -269,7 +270,7 @@ def delete_user(username):
             columns = "[ride_num]"
             where = "created_by='" + username + "'"
             create_row_data = {"table":table, "columns":columns, "where":where}
-            r = requests.post("http://U-R-1151372789.us-east-1.elb.amazonaws.com/api/v1/db/read", json = create_row_data)
+            r = requests.post("http://"+ip+"/api/v1/db/read", json = create_row_data)
 
             rnums = r.json()["results"]
             numbers_to_delete = []
@@ -282,21 +283,21 @@ def delete_user(username):
             #to delete from 2nd table
             table = "rides"
             where = "created_by='" + username + "'"
-            create_row_data = {"table":table, "where":where}
-            r = requests.delete("http://U-R-1151372789.us-east-1.elb.amazonaws.com/api/v1/db/delete", json = create_row_data)
+            create_row_data = {"table":table, "where":where, "del":1}
+            r = requests.delete("http://"+ip+"/api/v1/db/write", json = create_row_data)
             
             #to delete from 3rd table
             for myrideid in numbers_to_delete:
                 table = "uride"
                 where = "num="+str(myrideid)
-                create_row_data = {"table":table, "where":where}
-                r = requests.delete("http://U-R-1151372789.us-east-1.elb.amazonaws.com/api/v1/db/delete", json = create_row_data)
+                create_row_data = {"table":table, "where":where, "del":1}
+                r = requests.delete("http://"+ip+"/api/v1/db/write", json = create_row_data)
             
             #also have to delete all rows w that guys username so 
             table = "uride"
             where = "uname='" + username + "'"
-            create_row_data = {"table":table, "where":where}
-            r = requests.delete("http://U-R-1151372789.us-east-1.elb.amazonaws.com/api/v1/db/delete", json = create_row_data)
+            create_row_data = {"table":table, "where":where, "del":1}
+            r = requests.delete("http://"+ip+"/api/v1/db/write", json = create_row_data)
             
             return jsonify(d), 200
     else:

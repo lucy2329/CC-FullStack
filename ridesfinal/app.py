@@ -7,6 +7,7 @@ import re
 import csv
 from datetime import datetime
 
+ip = "3.224.119.238"
 app = Flask(__name__)
 methodList = ["GET", "POST", "PUT", "PATCH", "DELETE", "COPY", "HEAD", "OPTIONS", "LINK", "UNLINK", "PURGE", "LOCK", "UNLOCK", "PROPFIND", "VIEW"]
 
@@ -94,13 +95,13 @@ def delete_from_db():
 def clear_db():
     table = "rides"
     where = ""
-    create_row_data = {"table":table, "where":where}
-    r = requests.delete("http://18.209.136.80:80/api/v1/db/delete", json = create_row_data)
+    create_row_data = {"table":table, "where":where, "del":1}
+    r = requests.delete("http://"+ip+"/api/v1/db/write", json = create_row_data)
 
     table = "uride"
     where = ""
-    create_row_data = {"table":table, "where":where}
-    r1 = requests.delete("http://18.209.136.80:80/api/v1/db/delete", json = create_row_data)
+    create_row_data = {"table":table, "where":where, "del":1}
+    r1 = requests.delete("http://"+ip+"/api/v1/db/write", json = create_row_data)
 
     d = dict()
     return jsonify(d), 200
@@ -164,11 +165,11 @@ def add_ride():
             source = request.get_json().get("source")
             destination = request.get_json().get("destination")
             try:
-                source = str(int(source))
-                destination = str(int(destination))
+                    source = str(int(source))
+                    destination = str(int(destination))
             except:
-                d = dict()
-                abort(400)
+                    d = dict()
+                    abort(400)
             if(created_by and timestamp and source and destination):
                 
                 origin = {"Origin": "18.209.136.80"}
@@ -178,6 +179,9 @@ def add_ride():
                 #if username doesn't exist return 400
                 if created_by not in r.json():
                     abort(400)
+                
+                
+                # if the source or destination is not present in places, bad request
                 elif(not (int(source) in places and int(destination) in places)):
                     abort(400)
                 else:
@@ -188,7 +192,7 @@ def add_ride():
                         types = "[string,string,int,int,string]"
                         table = "rides"
                         create_row_data = {"insert":insert, "columns":columns, "table":table, "types":types}
-                        r = requests.post("http://18.209.136.80:80/api/v1/db/write", json = create_row_data)
+                        r = requests.post("http://"+ip+"/api/v1/db/write", json = create_row_data)
                         return jsonify(d), 201
                     except:
                         abort(400)    
@@ -199,48 +203,55 @@ def add_ride():
         except:
             abort(400)
     elif request.method == "GET":
+        
+
+        datestr = get_curr_time()
+        teststr = 5
+        source = request.args.get('source')
+        destination = request.args.get('destination')
         try:
-            datestr = get_curr_time()
-            teststr = 5
-            source = request.args.get('source')
-            destination = request.args.get('destination')
-            try:
-                    source = str(int(source))
-                    destination = str(int(destination))
-            except:
-                    d = dict()
-                    abort(400)
-            if(source and destination):
-                d = dict()
-                if(not (int(source) in places and int(destination) in places)):
-                    abort(400)
-                else:
-                    table = "rides"
-                    columns = "[ride_num,created_by,timestamp]"
-                    where = "source=" + source + " AND destination=" + destination 
-                    create_row_data = {"table":table, "columns":columns, "where":where}
-                    r = requests.post("http://18.209.136.80:80/api/v1/db/read", json = create_row_data)
-                    if(len(r.json()["results"]) == 0):
-                        return jsonify(d), 204
-                    else:
-                        final_lst = []
-                        lst = r.json()["results"]
-                        print(lst)
-                        print("here: ", lst[0][2], datestr)
-                        for x in range(len(lst)):
-                            
-                            temp = dict()
-                            temp["rideId"] = lst[x][0]
-                            #temp["username"] = "{" + lst[x][1] + "}"
-                            temp["username"] = lst[x][1]
-                            temp["timestamp"] = lst[x][2]
-                            
-                            if(compare_dates(datestr, str(lst[x][2]))):
-                                final_lst.append(temp)
-                    return json.dumps(final_lst)
-            else:
-                abort(400)
+                source = str(int(source))
+                destination = str(int(destination))
         except:
+                d = dict()
+                print("e 1")
+                abort(400)
+        if(source and destination):
+            d = dict()
+            if(not (int(source) in places and int(destination) in places)):
+                print("e 2")
+                abort(400)
+            else:
+                table = "rides"
+                columns = "[ride_num,created_by,timestamp]"
+                where = "source=" + source + " AND destination=" + destination 
+                create_row_data = {"table":table, "columns":columns, "where":where}
+                r = requests.post("http://"+ip+"/api/v1/db/read", json = create_row_data)
+                print("read", flush = True)
+                if(len(r.json()["results"]) == 0):
+                    return jsonify(d), 204
+                else:
+                    final_lst = []
+                    print("inside else", flush = True)
+                    lst = r.json()["results"]
+                    print(lst, "LST", flush = True)
+                    print("here: ", lst[0][2], datestr, flush = True)
+                    for x in range(len(lst)):
+                        
+                        temp = dict()
+                        temp["rideId"] = lst[x][0]
+                        #temp["username"] = "{" + lst[x][1] + "}"
+                        temp["username"] = lst[x][1]                            
+                        temp["timestamp"] = lst[x][2]
+                        
+                        if(compare_dates(datestr, str(lst[x][2]))):
+                            final_lst.append(temp)
+
+                    print("enf of for", flush = True)
+                return json.dumps(final_lst)
+        else:
+            d = dict()
+            print("e 4")
             abort(400)
     else:
         d = dict()
@@ -261,13 +272,13 @@ def get_ride_details(rideId):
             columns = "[ride_num,created_by,timestamp,source,destination]"
             where = "ride_num=" + rideId
             create_row_data = {"table":table, "columns":columns, "where":where}
-            r = requests.post("http://18.209.136.80:80/api/v1/db/read", json = create_row_data)
+            r = requests.post("http://"+ip+"/api/v1/db/read", json = create_row_data)
             r1 = r.json()["results"]
             table = "uride"
             columns = "[uname]"
             where = "num=" +rideId
             create_row_data = {"table":table, "columns":columns, "where":where}
-            r = requests.post("http://18.209.136.80:80/api/v1/db/read", json = create_row_data)
+            r = requests.post("http://"+ip+"/api/v1/db/read", json = create_row_data)
             d = dict()
             if(len(r1) == 0):
                 return jsonify(d), 400
@@ -299,7 +310,7 @@ def get_ride_details(rideId):
             columns = "[ride_num,created_by]"
             where = "ride_num=" +rideId
             create_row_data = {"table":table, "columns":columns, "where":where}
-            r = requests.post("http://18.209.136.80:80/api/v1/db/read", json = create_row_data)
+            r = requests.post("http://"+ip+"/api/v1/db/read", json = create_row_data)
             d = dict()
             if(len(r.json()["results"]) == 0):
                 return jsonify(d), 204 
@@ -322,8 +333,8 @@ def get_ride_details(rideId):
                 columns1 = "[created_by]"
                 where1 = "ride_num="+rideId
                 create_row_data1 = {"table":table1, "columns":columns1, "where":where1}
-                r = requests.post(r"http://18.209.136.80:80/api/v1/db/read", json = create_row_data)
-                r1 = requests.post("http://18.209.136.80:80/api/v1/db/read", json = create_row_data1)
+                r = requests.post(r"http://"+ip+"/api/v1/db/read", json = create_row_data)
+                r1 = requests.post("http://"+ip+"/api/v1/db/read", json = create_row_data1)
                 if((len(r.json()["results"])==0) and (len(r1.json()["results"]))):
                     print("check")
                     insert = "[" + str(rideId) + "," + username + "]"
@@ -331,7 +342,7 @@ def get_ride_details(rideId):
                     types = "[int,string]"
                     table = "uride"
                     create_row_data = {"insert":insert, "columns":columns, "table":table, "types":types}
-                    r = requests.post("http://18.209.136.80:80/api/v1/db/write", json = create_row_data)
+                    r = requests.post("http://"+ip+"/api/v1/db/write", json = create_row_data)
                     return jsonify(d), 200
                 else:
                     abort(400)
@@ -350,17 +361,17 @@ def get_ride_details(rideId):
             columns = "[created_by]"
             where = "ride_num=" + str(rideId)
             create_row_data = {"table":table, "columns":columns, "where":where}
-            r = requests.post("http://18.209.136.80:80/api/v1/db/read", json = create_row_data)
+            r = requests.post("http://"+ip+"/api/v1/db/read", json = create_row_data)
             if(len(r.json()["results"]) == 0):
                 return jsonify(d), 400
             table = "uride"
             where = "num=" + str(rideId)
-            create_row_data = {"table":table, "where":where}
-            r = requests.delete("http://18.209.136.80:80/api/v1/db/delete", json = create_row_data)
+            create_row_data = {"table":table, "where":where, "del":1}
+            r = requests.delete("http://"+ip+"/api/v1/db/write", json = create_row_data)
             table = "rides"
             where = "ride_num=" + str(rideId)
-            create_row_data = {"table":table, "where":where}
-            r = requests.delete("http://18.209.136.80:80/api/v1/db/delete", json = create_row_data)
+            create_row_data = {"table":table, "where":where, "del":1}
+            r = requests.delete("http://"+ip+"/api/v1/db/write", json = create_row_data)
             return jsonify(d), 200
         except:
             abort(400)
@@ -376,7 +387,7 @@ def get_ride_count():
         columns = "[ride_num,created_by,timestamp,source,destination]"
         where = ""
         create_row_data = {"table":table, "columns":columns, "where":where}
-        r = requests.post("http://18.209.136.80:80/api/v1/db/read", json = create_row_data)
+        r = requests.post("http://"+ip+"/api/v1/db/read", json = create_row_data)
         return jsonify([len(r.json()["results"])]), 200
     else:
         abort(405)
@@ -409,7 +420,7 @@ def get_requests():
         columns = "[requests]"
         where = ""
         create_row_data = {"table":table, "columns":columns, "where":where}
-        r = requests.post("http://18.209.136.80:80/api/v1/db/read", json = create_row_data)
+        r = requests.post("http://18.209.136.80/api/v1/db/read", json = create_row_data)
         lst = r.json()["results"] #[13]
         return jsonify(lst[0]), 200
     
