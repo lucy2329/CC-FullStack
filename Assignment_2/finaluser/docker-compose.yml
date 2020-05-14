@@ -1,0 +1,17 @@
+version: '3'
+services:
+  web:
+    command: python app.py
+    build: .
+    image: users:latest
+    ports:
+      - "8080:80"
+    restart: always
+    links:
+      - sqlite3
+    depends_on:
+      - sqlite3
+  sqlite3:
+    image: nouchka/sqlite3:latest
+    ports: 
+      - "27017:27017"
