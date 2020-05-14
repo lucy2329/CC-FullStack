@@ -1,0 +1,43 @@
+version: '3.7'
+
+x-default: &default
+    environment:
+        - TEAM_NAME=CC_0014_0025_0121_0183
+    networks:
+        - Orchestrator
+    restart: always
+
+services:
+    rabbitmq:
+        <<: *default
+        container_name: rabbitmq
+        image: rabbitmq:latest
+
+    zookeeper:
+        <<: *default
+        container_name: zookeeper
+        environment:
+            - ZOO_MY_ID=1
+            - ZOO_SERVER=server.1=0.0.0.0:2888:3888;2181
+        image: zookeeper:latest
+        hostname: zookeeper
+
+    orchestrator:
+        <<: *default
+        build: .
+        container_name: orchestrator
+        depends_on:
+            - rabbitmq
+            - zookeeper
+        image: orchestrator:latest
+        ports:
+            - "80:5000"
+        volumes:
+            - ./orchestrator.py:/orchestrator.py
+            - ./filewrites.txt:/filewrites.txt
+            - /usr/bin/docker:/usr/bin/docker
+            - /var/run/docker.sock:/var/run/docker.sock
+
+networks:
+   Orchestrator:
+       name: Orchestrator
