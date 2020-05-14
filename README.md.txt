@@ -23,3 +23,6 @@ Final Project:
 -cd into the folder in each instance and run the script "run-all.sh".
 - you might have to run sudo docker system prune --volumes -a incase instance runs out of memory.
 - send requests over load balancer.
+
+Testing: 
+- Test1.postman_collection.json is a postman collection we made on our own set of requests 
