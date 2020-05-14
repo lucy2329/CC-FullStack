@@ -11,7 +11,10 @@ from flask import jsonify
 # import uuid
 import math
 print("latest")
+from kazoo.client import KazooClient
 
+zk = KazooClient(hosts='zookeeper:2181')
+zk.start()
 from apscheduler.schedulers.background import BackgroundScheduler
 
 
@@ -89,13 +92,13 @@ sleep(15)
 worker_status = []
 worker_pids = []
 master = ''
+zk.get('/slaves
 
 def get_pids():
     global worker_pids
     for worker in range(len(worker_status)):
         if worker_status[worker]==1:
-            os.system('docker inspect --format \'{{ .State.Pid }}\' worker'+ str(worker) +' > tmp.txt')
-            pid = ''
+            os.system('docker inspect --format \'{{ .State.Pid }}\' worker'+ str(worker) +' > tmp.txt')            pid = ''
             with open('tmp.txt','r') as pid_file:
                 for ch in pid_file:
                     pid += ch

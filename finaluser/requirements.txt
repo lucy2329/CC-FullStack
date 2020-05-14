@@ -1,5 +1,0 @@
-flask
-requests==2.18.4
-jsonschema==2.6.0    
-simplejson==3.17.0  
-
