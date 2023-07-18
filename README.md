@@ -1,5 +1,8 @@
 # CC-FullStack
 
+![DbaaS](https://github.com/lucy2329/CC-FullStack/assets/46516275/5c57776b-01b6-4c55-94e9-43409cdbf61d)
+
+
 Assignment 1:
 - upload files to instance
 - setup flask, nginx, guinicorn
